@@ -1,0 +1,20 @@
+tmp/
+
+# Gradle
+.gradle/
+build/
+app/build/
+
+# IDE
+.idea/
+*.iml
+local.properties
+
+# Android
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# Environment
+.env

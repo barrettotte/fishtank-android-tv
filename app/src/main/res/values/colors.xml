@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="dark">#191C20</color>
+    <color name="white">#FFFFFF</color>
+    <color name="primary">#DF4E1E</color>
+    <color name="secondary">#26B64B</color>
+    <color name="tertiary">#3370B8</color>
+    <color name="accent">#EFC820</color>
+    <color name="danger">#C92A2A</color>
+    <color name="gray">#999999</color>
+    <color name="panel_border">#2A2D32</color>
+</resources>

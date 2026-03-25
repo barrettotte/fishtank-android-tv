@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <!-- Compose/Navigation/Lifecycle versions are pinned to Kotlin 1.9.22 compatibility -->
+    <issue id="GradleDependency" severity="informational" />
+
+    <!-- Theme colors will be used in later phases -->
+    <issue id="UnusedResources" severity="informational" />
+
+    <!-- Placeholder launcher icon - will be replaced with real asset -->
+    <issue id="IconLauncherShape" severity="informational" />
+    <issue id="MonochromeLauncherIcon" severity="informational" />
+</lint>
