@@ -17,7 +17,9 @@ import com.barrettotte.fishtank.data.api.ApiClient
 import com.barrettotte.fishtank.data.repository.AuthRepository
 import com.barrettotte.fishtank.data.repository.PreferencesRepository
 import com.barrettotte.fishtank.data.repository.ProfileRepository
+import com.barrettotte.fishtank.data.repository.StreamRepository
 import com.barrettotte.fishtank.ui.grid.GridScreen
+import com.barrettotte.fishtank.ui.grid.GridViewModel
 import com.barrettotte.fishtank.ui.login.LoginScreen
 import com.barrettotte.fishtank.ui.login.LoginViewModel
 import com.barrettotte.fishtank.ui.player.PlayerScreen
@@ -46,6 +48,7 @@ fun FishtankNavHost() {
     val api = remember { ApiClient.create(preferencesRepository) }
     val profileRepository = remember { ProfileRepository(api) }
     val authRepository = remember { AuthRepository(api, preferencesRepository, profileRepository) }
+    val streamRepository = remember { StreamRepository(api) }
 
     // Read auto-login credentials from build config (set via .env in debug builds)
     val autoLoginEmail = BuildConfig.FT_EMAIL
@@ -68,8 +71,11 @@ fun FishtankNavHost() {
 
         composable("grid") {
             val displayName = remember { runBlocking { preferencesRepository.getDisplayName() } }
+            val viewModel = remember {
+                GridViewModel(streamRepository, authRepository, displayName)
+            }
             GridScreen(
-                displayName = displayName,
+                viewModel = viewModel,
                 onCameraSelected = { streamId ->
                     navController.navigate("player/$streamId")
                 },

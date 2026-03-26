@@ -1,6 +1,7 @@
 package com.barrettotte.fishtank.data.api
 
 import com.barrettotte.fishtank.data.repository.PreferencesRepository
+import com.barrettotte.fishtank.util.Constants
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -8,8 +9,6 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 /** Singleton factory for creating the Retrofit API client. */
 object ApiClient {
-
-    private const val BASE_URL = "https://api.fishtank.live/v1/"
 
     /** Build and return the FishtankApi instance with auth and logging interceptors. */
     fun create(preferencesRepository: PreferencesRepository): FishtankApi {
@@ -23,7 +22,7 @@ object ApiClient {
             .build()
 
         val retrofit = Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(Constants.API_BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
