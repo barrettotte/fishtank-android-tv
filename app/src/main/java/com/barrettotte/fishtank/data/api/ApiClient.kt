@@ -1,11 +1,12 @@
 package com.barrettotte.fishtank.data.api
 
-import com.barrettotte.fishtank.data.repository.PreferencesRepository
-import com.barrettotte.fishtank.util.Constants
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+
+import com.barrettotte.fishtank.data.repository.PreferencesRepository
+import com.barrettotte.fishtank.util.Constants
 
 /** Singleton factory for creating the Retrofit API client. */
 object ApiClient {

@@ -1,8 +1,9 @@
 package com.barrettotte.fishtank
 
-import com.barrettotte.fishtank.util.Constants
 import org.junit.Assert.assertEquals
 import org.junit.Test
+
+import com.barrettotte.fishtank.util.Constants
 
 /** Tests for app constants. */
 class ApiClientTest {

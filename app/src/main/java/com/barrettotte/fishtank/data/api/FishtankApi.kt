@@ -1,15 +1,16 @@
 package com.barrettotte.fishtank.data.api
 
-import com.barrettotte.fishtank.data.model.LiveStreamsResponse
-import com.barrettotte.fishtank.data.model.LoginRequest
-import com.barrettotte.fishtank.data.model.LoginResponse
-import com.barrettotte.fishtank.data.model.ProfileResponse
-import com.barrettotte.fishtank.data.model.ValidateResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
+
+import com.barrettotte.fishtank.data.model.LiveStreamsResponse
+import com.barrettotte.fishtank.data.model.LoginRequest
+import com.barrettotte.fishtank.data.model.LoginResponse
+import com.barrettotte.fishtank.data.model.ProfileResponse
+import com.barrettotte.fishtank.data.model.ValidateResponse
 
 /** Retrofit interface for all Fishtank.live API endpoints. */
 interface FishtankApi {

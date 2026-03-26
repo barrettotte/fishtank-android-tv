@@ -1,12 +1,13 @@
 package com.barrettotte.fishtank
 
-import com.barrettotte.fishtank.data.model.LoginResponse
-import com.barrettotte.fishtank.data.model.ValidateResponse
 import com.google.gson.Gson
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Test
+
+import com.barrettotte.fishtank.data.model.LoginResponse
+import com.barrettotte.fishtank.data.model.ValidateResponse
 
 /** Tests for auth-related API response parsing edge cases. */
 class AuthResponseTest {

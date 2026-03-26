@@ -1,13 +1,14 @@
 package com.barrettotte.fishtank
 
-import com.barrettotte.fishtank.data.model.LiveStreamsResponse
-import com.barrettotte.fishtank.data.model.LoginResponse
-import com.barrettotte.fishtank.data.model.ProfileResponse
-import com.barrettotte.fishtank.data.model.ValidateResponse
 import com.google.gson.Gson
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
+
+import com.barrettotte.fishtank.data.model.LiveStreamsResponse
+import com.barrettotte.fishtank.data.model.LoginResponse
+import com.barrettotte.fishtank.data.model.ProfileResponse
+import com.barrettotte.fishtank.data.model.ValidateResponse
 
 /** Tests that API response models deserialize correctly from known JSON formats. */
 class ModelDeserializationTest {

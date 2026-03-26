@@ -1,14 +1,16 @@
 package com.barrettotte.fishtank.ui.grid
 
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 import com.barrettotte.fishtank.data.model.LiveStream
 import com.barrettotte.fishtank.data.repository.AuthRepository

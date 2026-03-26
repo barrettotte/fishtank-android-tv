@@ -1,9 +1,10 @@
 package com.barrettotte.fishtank.data.api
 
-import com.barrettotte.fishtank.data.repository.PreferencesRepository
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.Response
+
+import com.barrettotte.fishtank.data.repository.PreferencesRepository
 
 /** OkHttp interceptor that attaches the Bearer token to authenticated requests. */
 class AuthInterceptor(private val preferencesRepository: PreferencesRepository) : Interceptor {

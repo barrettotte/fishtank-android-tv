@@ -1,10 +1,11 @@
 package com.barrettotte.fishtank
 
-import com.barrettotte.fishtank.data.model.LiveStreamsResponse
 import com.google.gson.Gson
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
+
+import com.barrettotte.fishtank.data.model.LiveStreamsResponse
 
 /** Tests for live streams response parsing. */
 class StreamResponseTest {

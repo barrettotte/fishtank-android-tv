@@ -1,10 +1,11 @@
 package com.barrettotte.fishtank
 
-import com.barrettotte.fishtank.ui.login.LoginUiState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Test
+
+import com.barrettotte.fishtank.ui.login.LoginUiState
 
 /** Tests for LoginUiState defaults and validation logic. */
 class LoginViewModelTest {

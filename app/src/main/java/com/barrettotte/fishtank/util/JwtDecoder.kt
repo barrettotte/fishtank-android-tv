@@ -1,6 +1,7 @@
 package com.barrettotte.fishtank.util
 
 import android.util.Base64
+
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 
