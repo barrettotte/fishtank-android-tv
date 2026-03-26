@@ -1,11 +1,12 @@
 package com.barrettotte.fishtank.data.model
 
-/** Response from GET /profile/{userId}. */
+/** Response from GET /profile/{userId}. Handles both nested and flat formats. */
 data class ProfileResponse(
     val data: ProfileData?,
+    val profile: Profile?,
 )
 
-/** Profile data wrapper. */
+/** Profile data wrapper for nested format. */
 data class ProfileData(
     val profile: Profile?,
 )

@@ -16,7 +16,14 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Auto-login credentials from .env (via gradle.properties or env vars)
+            buildConfigField("String", "FT_EMAIL", "\"${System.getenv("FT_EMAIL") ?: ""}\"")
+            buildConfigField("String", "FT_PASSWORD", "\"${System.getenv("FT_PASSWORD") ?: ""}\"")
+        }
         release {
+            buildConfigField("String", "FT_EMAIL", "\"\"")
+            buildConfigField("String", "FT_PASSWORD", "\"\"")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -36,6 +43,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     composeOptions {

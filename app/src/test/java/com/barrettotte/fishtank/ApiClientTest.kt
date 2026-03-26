@@ -19,7 +19,6 @@ class ApiClientTest {
         val streamId = "abc-123-def"
         val liveStreamToken = "jwt-token-here"
         val quality = "maxbps"
-
         val url = "https://$server/hls/live+$streamId/index.m3u8?jwt=$liveStreamToken&video=$quality"
 
         assertEquals(

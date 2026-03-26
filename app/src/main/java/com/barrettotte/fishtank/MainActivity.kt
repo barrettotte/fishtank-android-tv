@@ -4,13 +4,22 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import kotlinx.coroutines.runBlocking
+
+import com.barrettotte.fishtank.data.api.ApiClient
+import com.barrettotte.fishtank.data.repository.AuthRepository
+import com.barrettotte.fishtank.data.repository.PreferencesRepository
+import com.barrettotte.fishtank.data.repository.ProfileRepository
 import com.barrettotte.fishtank.ui.grid.GridScreen
 import com.barrettotte.fishtank.ui.login.LoginScreen
+import com.barrettotte.fishtank.ui.login.LoginViewModel
 import com.barrettotte.fishtank.ui.player.PlayerScreen
 import com.barrettotte.fishtank.ui.theme.FishtankTheme
 
@@ -29,25 +38,43 @@ class MainActivity : ComponentActivity() {
 /** Top-level navigation host with routes for login, grid, and player screens. */
 @Composable
 fun FishtankNavHost() {
+    val context = LocalContext.current
     val navController = rememberNavController()
+
+    // Create dependencies
+    val preferencesRepository = remember { PreferencesRepository(context) }
+    val api = remember { ApiClient.create(preferencesRepository) }
+    val profileRepository = remember { ProfileRepository(api) }
+    val authRepository = remember { AuthRepository(api, preferencesRepository, profileRepository) }
+
+    // Read auto-login credentials from build config (set via .env in debug builds)
+    val autoLoginEmail = BuildConfig.FT_EMAIL
+    val autoLoginPassword = BuildConfig.FT_PASSWORD
 
     NavHost(navController = navController, startDestination = "login") {
         composable("login") {
+            val viewModel = remember {
+                LoginViewModel(authRepository, autoLoginEmail, autoLoginPassword)
+            }
             LoginScreen(
+                viewModel = viewModel,
                 onLoginSuccess = {
                     navController.navigate("grid") {
                         popUpTo("login") { inclusive = true }
                     }
-                }
+                },
             )
         }
 
         composable("grid") {
+            val displayName = remember { runBlocking { preferencesRepository.getDisplayName() } }
             GridScreen(
+                displayName = displayName,
                 onCameraSelected = { streamId ->
                     navController.navigate("player/$streamId")
                 },
                 onLogout = {
+                    runBlocking { authRepository.logout() }
                     navController.navigate("login") {
                         popUpTo("grid") { inclusive = true }
                     }

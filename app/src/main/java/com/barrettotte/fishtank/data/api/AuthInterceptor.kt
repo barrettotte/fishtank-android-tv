@@ -6,9 +6,7 @@ import okhttp3.Interceptor
 import okhttp3.Response
 
 /** OkHttp interceptor that attaches the Bearer token to authenticated requests. */
-class AuthInterceptor(
-    private val preferencesRepository: PreferencesRepository,
-) : Interceptor {
+class AuthInterceptor(private val preferencesRepository: PreferencesRepository) : Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val originalRequest = chain.request()
@@ -18,12 +16,11 @@ class AuthInterceptor(
             return chain.proceed(originalRequest)
         }
 
-        val token = runBlocking { preferencesRepository.getAccessToken() }
-
+        val token = runBlocking { 
+            preferencesRepository.getAccessToken() 
+        }
         val authenticatedRequest = if (token.isNotEmpty()) {
-            originalRequest.newBuilder()
-                .header("Authorization", "Bearer $token")
-                .build()
+            originalRequest.newBuilder().header("Authorization", "Bearer $token").build()
         } else {
             originalRequest
         }

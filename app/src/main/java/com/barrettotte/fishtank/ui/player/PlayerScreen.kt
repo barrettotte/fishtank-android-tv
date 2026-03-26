@@ -14,10 +14,7 @@ import com.barrettotte.fishtank.ui.theme.Dark
 /** Video player screen placeholder - Not implemented yet. */
 @Suppress("UNUSED_PARAMETER") // TODO: remove
 @Composable
-fun PlayerScreen(
-    streamId: String,
-    onBack: () -> Unit,
-) {
+fun PlayerScreen(streamId: String, onBack: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
