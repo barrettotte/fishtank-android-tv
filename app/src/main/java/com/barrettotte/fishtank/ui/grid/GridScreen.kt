@@ -1,5 +1,6 @@
 package com.barrettotte.fishtank.ui.grid
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
@@ -33,8 +34,12 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
+import com.barrettotte.fishtank.R
 
 import com.barrettotte.fishtank.util.Constants
 import com.barrettotte.fishtank.ui.theme.Dark
@@ -130,11 +135,12 @@ private fun GridHeader(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // Left: logo text
-        Text(
-            text = "Fishtank",
-            style = MaterialTheme.typography.headlineMedium,
-            color = Primary,
+        // Left: logo image
+        Image(
+            painter = painterResource(id = R.drawable.logo_stripe),
+            contentDescription = "Fishtank",
+            modifier = Modifier.height(28.dp),
+            contentScale = ContentScale.Fit,
         )
 
         // Right: display name, online count, clock
@@ -147,13 +153,13 @@ private fun GridHeader(
             HeaderSeparator()
             Text(
                 text = "$onlineCount/$totalCount online",
-                color = Secondary,
+                color = Color.White,
                 fontSize = 14.sp,
             )
             HeaderSeparator()
             Text(
                 text = currentTime,
-                color = Gray,
+                color = Color.White,
                 fontSize = 14.sp,
             )
         }
@@ -165,7 +171,7 @@ private fun GridHeader(
 private fun HeaderSeparator() {
     Text(
         text = "  \u00B7  ",
-        color = Gray,
+        color = Color.White,
         fontSize = 14.sp,
     )
 }
