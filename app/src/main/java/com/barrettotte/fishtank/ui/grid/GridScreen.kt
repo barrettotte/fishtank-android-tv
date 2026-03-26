@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,8 +26,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
@@ -182,6 +185,15 @@ private fun CameraGrid(
     cameras: List<CameraTile>,
     onCameraSelected: (String) -> Unit,
 ) {
+    val firstFocusRequester = remember { FocusRequester() }
+
+    // Request focus on the first tile after composition
+    LaunchedEffect(cameras) {
+        if (cameras.isNotEmpty()) {
+            firstFocusRequester.requestFocus()
+        }
+    }
+
     LazyVerticalGrid(
         columns = GridCells.Fixed(Constants.GRID_COLUMNS),
         contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp),
@@ -189,13 +201,11 @@ private fun CameraGrid(
         verticalArrangement = Arrangement.spacedBy(10.dp),
         modifier = Modifier.fillMaxSize(),
     ) {
-        items(cameras, key = { it.stream.id }) { tile ->
+        itemsIndexed(cameras, key = { _, tile -> tile.stream.id }) { index, tile ->
             CameraGridItem(
                 tile = tile,
-                modifier = Modifier
-                    .clickable(enabled = tile.isOnline) {
-                        onCameraSelected(tile.stream.id)
-                    },
+                onSelect = { onCameraSelected(tile.stream.id) },
+                focusRequester = if (index == 0) firstFocusRequester else null,
             )
         }
     }

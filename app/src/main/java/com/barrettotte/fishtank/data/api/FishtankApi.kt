@@ -19,9 +19,9 @@ interface FishtankApi {
     @POST("auth/log-in")
     suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
 
-    /** Validate the current access token. 200 means valid. */
+    /** Validate the current access token. 200 means valid. May return refreshed tokens. */
     @GET("auth")
-    suspend fun validateToken(): Response<ValidateResponse>
+    suspend fun validateToken(): Response<LoginResponse>
 
     /** Fetch all live camera streams with status and load balancer info. */
     @GET("live-streams")

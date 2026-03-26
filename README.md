@@ -72,18 +72,22 @@ Uses the `android-tv` system image which provides the Android TV launcher with L
 
 ```sh
 # one-time setup
-make avd-create
+make avd_create
 
 # build, launch emulator, install, and run
 make emulate
 ```
 
+> **If emulator keys aren't working:** The AVD may have `hw.keyboard=no` by default. Edit `$ANDROID_AVD_HOME/FishtankTV.avd/config.ini` and set `hw.keyboard=yes`, then also set `hw.keyboard = true` in `hardware-qemu.ini` in the same directory. Kill the emulator and relaunch.
+
 ### Debugging
 
-View app logs:
-
 ```sh
+# view app logs
 make debug
+
+# view emulator logs
+make debug_emu
 ```
 
 ### Other Commands

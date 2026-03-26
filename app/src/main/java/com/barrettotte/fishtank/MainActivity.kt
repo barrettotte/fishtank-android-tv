@@ -2,6 +2,8 @@ package com.barrettotte.fishtank
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+
+import com.barrettotte.fishtank.util.Logger
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -24,10 +26,15 @@ import com.barrettotte.fishtank.ui.grid.GridViewModel
 import com.barrettotte.fishtank.ui.login.LoginScreen
 import com.barrettotte.fishtank.ui.login.LoginViewModel
 import com.barrettotte.fishtank.ui.player.PlayerScreen
+import com.barrettotte.fishtank.ui.player.PlayerViewModel
 import com.barrettotte.fishtank.ui.theme.FishtankTheme
 
 /** Main entry point for the Fishtank Android TV app. */
 class MainActivity : ComponentActivity() {
+
+    /** Callback for intercepting key events at the Activity level. Set by PlayerScreen. */
+    var keyEventInterceptor: ((android.view.KeyEvent) -> Boolean)? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -35,6 +42,16 @@ class MainActivity : ComponentActivity() {
                 FishtankNavHost()
             }
         }
+    }
+
+    override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean {
+        if (event.action == android.view.KeyEvent.ACTION_DOWN) {
+            Logger.d("Keys", "keyCode=${event.keyCode} interceptor=${keyEventInterceptor != null}")
+        }
+        if (keyEventInterceptor?.invoke(event) == true) {
+            return true
+        }
+        return super.dispatchKeyEvent(event)
     }
 }
 
@@ -94,8 +111,11 @@ fun FishtankNavHost() {
             arguments = listOf(navArgument("streamId") { type = NavType.StringType }),
         ) { backStackEntry ->
             val streamId = backStackEntry.arguments?.getString("streamId") ?: ""
+            val viewModel = remember(streamId) {
+                PlayerViewModel(streamRepository, preferencesRepository, authRepository, streamId)
+            }
             PlayerScreen(
-                streamId = streamId,
+                viewModel = viewModel,
                 onBack = { navController.popBackStack() },
             )
         }

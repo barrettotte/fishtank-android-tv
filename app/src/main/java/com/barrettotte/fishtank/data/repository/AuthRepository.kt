@@ -60,7 +60,7 @@ class AuthRepository(
         }
     }
 
-    /** Validate the cached access token. Fetches display name if missing. Returns true if valid. */
+    /** Validate the cached access token. Refreshes tokens and display name if needed. */
     suspend fun validateToken(): Boolean {
         return try {
             val token = preferencesRepository.getAccessToken()
@@ -73,14 +73,30 @@ class AuthRepository(
             Logger.d(TAG, "Token validation result: ${response.code()}")
 
             if (response.isSuccessful) {
-                // Fetch display name if it's missing (e.g. from an older session)
-                val cachedName = preferencesRepository.getDisplayName()
-                if (cachedName.isEmpty()) {
-                    Logger.d(TAG, "Display name missing, fetching from profile...")
-                    val displayName = fetchDisplayName(token)
-                    if (displayName.isNotEmpty()) {
-                        val liveStreamToken = preferencesRepository.getLiveStreamToken()
-                        preferencesRepository.saveSession(token, liveStreamToken, displayName)
+                // GET /auth may return refreshed tokens - save them if present
+                val session = response.body()?.session
+                if (session?.accessToken != null && session.liveStreamToken != null) {
+                    Logger.d(TAG, "Refreshed tokens from GET /auth")
+
+                    val displayName = preferencesRepository.getDisplayName().ifEmpty {
+                        fetchDisplayName(session.accessToken)
+                    }
+                    preferencesRepository.saveSession(
+                        session.accessToken,
+                        session.liveStreamToken,
+                        displayName,
+                    )
+                } else {
+                    // No refreshed tokens - just fetch display name if missing
+                    val cachedName = preferencesRepository.getDisplayName()
+                    if (cachedName.isEmpty()) {
+                        Logger.d(TAG, "Display name missing, fetching from profile...")
+
+                        val displayName = fetchDisplayName(token)
+                        if (displayName.isNotEmpty()) {
+                            val liveStreamToken = preferencesRepository.getLiveStreamToken()
+                            preferencesRepository.saveSession(token, liveStreamToken, displayName)
+                        }
                     }
                 }
             }
@@ -90,6 +106,13 @@ class AuthRepository(
             Logger.e(TAG, "Token validation exception: ${e.message}", e)
             false
         }
+    }
+
+    /** Refresh the live stream token by re-validating. Call before playing a stream. */
+    suspend fun refreshLiveStreamToken(): String {
+        Logger.d(TAG, "Refreshing live stream token...")
+        validateToken()
+        return preferencesRepository.getLiveStreamToken()
     }
 
     /** Clear stored auth data. */

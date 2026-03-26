@@ -1,7 +1,10 @@
 package com.barrettotte.fishtank.ui.grid
 
+import android.view.KeyEvent as AndroidKeyEvent
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,9 +18,21 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 
@@ -27,19 +42,51 @@ import com.barrettotte.fishtank.ui.theme.Danger
 import com.barrettotte.fishtank.ui.theme.Dark
 import com.barrettotte.fishtank.ui.theme.Gray
 import com.barrettotte.fishtank.ui.theme.PanelBorder
+import com.barrettotte.fishtank.ui.theme.Primary
 import com.barrettotte.fishtank.ui.theme.Secondary
 
 /** A single camera tile in the grid showing thumbnail, name, and online status. */
 @Composable
-fun CameraGridItem(tile: CameraTile, modifier: Modifier = Modifier) {
+fun CameraGridItem(
+    tile: CameraTile,
+    onSelect: () -> Unit,
+    focusRequester: FocusRequester? = null,
+    modifier: Modifier = Modifier,
+) {
     val statusColor = if (tile.isOnline) Secondary else Danger
     val cameraName = tile.stream.displayName ?: tile.stream.name ?: tile.stream.id
+    var isFocused by remember { mutableStateOf(false) }
+
+    val borderColor = if (isFocused) Primary else PanelBorder
+    val borderWidth = if (isFocused) 3.dp else 1.dp
+
+    val focusModifier = if (focusRequester != null) {
+        Modifier.focusRequester(focusRequester)
+    } else {
+        Modifier
+    }
 
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(4.dp))
             .background(Dark)
-            .border(1.dp, PanelBorder, RoundedCornerShape(4.dp))
+            .border(borderWidth, borderColor, RoundedCornerShape(4.dp))
+            .onFocusChanged { isFocused = it.isFocused }
+            .then(focusModifier)
+            .onKeyEvent { event ->
+                if (event.type == KeyEventType.KeyDown) {
+                    val isSelect = event.key == Key.Enter || event.key == Key(AndroidKeyEvent.KEYCODE_DPAD_CENTER)
+                    if (isSelect && tile.isOnline) {
+                        onSelect()
+                        true
+                    } else {
+                        false
+                    }
+                } else {
+                    false
+                }
+            }
+            .focusable()
     ) {
         // Thumbnail
         Box(

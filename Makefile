@@ -4,7 +4,7 @@ ifneq (,$(wildcard .env))
     export
 endif
 
-.PHONY: build lint deploy test clean debug emulate avd-create
+.PHONY: build lint deploy test clean debug debug-emu emulate avd-create
 
 APK_DEBUG = app/build/outputs/apk/debug/app-debug.apk
 PACKAGE   = com.barrettotte.fishtank
@@ -40,6 +40,9 @@ else
 	adb -s emulator-5554 logcat | grep --line-buffered "Fishtank\."
 endif
 
+debug_emu:
+	adb -s emulator-5554 logcat | grep --line-buffered "Fishtank\."
+
 emulate: build
 	adb start-server
 	nohup emulator @$(AVD_NAME) -gpu host -no-snapshot > /dev/null 2>&1 &
@@ -48,7 +51,7 @@ emulate: build
 	adb -s emulator-5554 install -r $(APK_DEBUG)
 	adb -s emulator-5554 shell am start -n $(PACKAGE)/$(ACTIVITY)
 
-avd-create:
+avd_create:
 	avdmanager create avd -n $(AVD_NAME) \
 		-k "system-images;android-34;android-tv;x86" \
 		-d "tv_1080p"

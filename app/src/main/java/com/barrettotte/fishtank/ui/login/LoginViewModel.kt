@@ -28,18 +28,13 @@ class LoginViewModel(
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState
 
-    /** Check for cached token on launch. Calls onSuccess if token is still valid. */
+    /** Check for cached token on launch. Always re-logins to get fresh live_stream_token. */
     fun checkCachedToken(onSuccess: () -> Unit) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isCheckingToken = true)
 
-            val isValid = authRepository.validateToken()
-            if (isValid) {
-                onSuccess()
-                return@launch
-            }
-
-            // Try auto-login from .env credentials if available
+            // Try auto-login from .env credentials if available.
+            // Always do a full login to get a fresh live_stream_token (expires every 30 min).
             if (autoLoginEmail.isNotEmpty() && autoLoginPassword.isNotEmpty()) {
                 _uiState.value = _uiState.value.copy(
                     email = autoLoginEmail,
@@ -47,6 +42,13 @@ class LoginViewModel(
                     isCheckingToken = false,
                 )
                 login(onSuccess)
+                return@launch
+            }
+
+            // No auto-login credentials - try cached token
+            val isValid = authRepository.validateToken()
+            if (isValid) {
+                onSuccess()
                 return@launch
             }
 
