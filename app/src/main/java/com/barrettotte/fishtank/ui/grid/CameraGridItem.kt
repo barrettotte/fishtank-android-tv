@@ -68,7 +68,7 @@ fun CameraGridItem(
             .onFocusChanged { isFocused = it.hasFocus || it.isFocused }
             .then(focusModifier)
             .border(borderWidth, borderColor, RoundedCornerShape(4.dp))
-            .clickable(enabled = tile.isOnline) { onSelect() }
+            .clickable { onSelect() }
     ) {
         // Thumbnail
         Box(

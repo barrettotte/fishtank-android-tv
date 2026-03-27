@@ -7,10 +7,15 @@ import androidx.annotation.OptIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,11 +32,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 
 import com.barrettotte.fishtank.MainActivity
 import com.barrettotte.fishtank.util.Logger
+import com.barrettotte.fishtank.ui.theme.Danger
 import com.barrettotte.fishtank.ui.theme.Dark
 import com.barrettotte.fishtank.ui.theme.Gray
 import com.barrettotte.fishtank.ui.theme.Primary
@@ -48,10 +56,26 @@ fun PlayerScreen(
     val activity = context as? MainActivity
     val uiState by viewModel.uiState.collectAsState()
 
-    // Create ExoPlayer instance
+    // Create ExoPlayer instance with error handling
     val exoPlayer = remember {
         ExoPlayer.Builder(context).build().apply {
             playWhenReady = true
+            addListener(object : Player.Listener {
+                override fun onPlayerError(error: PlaybackException) {
+                    val message = when (error.errorCode) {
+                        PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED,
+                        PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT ->
+                            "Network error. Check your connection."
+                        PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS ->
+                            "Stream unavailable. Try a different server."
+                        PlaybackException.ERROR_CODE_IO_CLEARTEXT_NOT_PERMITTED,
+                        PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND ->
+                            "Stream not found."
+                        else -> "Playback error. Try again."
+                    }
+                    viewModel.setPlaybackError(message)
+                }
+            })
         }
     }
 
@@ -114,6 +138,45 @@ fun PlayerScreen(
                 },
                 modifier = Modifier.fillMaxSize(),
             )
+        }
+
+        // Playback error overlay
+        if (uiState.playbackError != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Dark.copy(alpha = 0.9f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = uiState.playbackError!!,
+                        color = Danger,
+                        fontSize = 16.sp,
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Button(
+                            onClick = { viewModel.retry() },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Primary,
+                                contentColor = White,
+                            ),
+                        ) {
+                            Text("Retry")
+                        }
+                        Button(
+                            onClick = onBack,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Gray,
+                                contentColor = White,
+                            ),
+                        ) {
+                            Text("Back")
+                        }
+                    }
+                }
+            }
         }
 
         // Info overlay (auto-hides after 3s)

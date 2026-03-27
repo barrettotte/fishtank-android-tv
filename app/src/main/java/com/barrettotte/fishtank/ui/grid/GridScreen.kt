@@ -20,6 +20,8 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -50,6 +52,7 @@ import com.barrettotte.fishtank.R
 import com.barrettotte.fishtank.util.Constants
 import com.barrettotte.fishtank.ui.theme.Danger
 import com.barrettotte.fishtank.ui.theme.Dark
+import com.barrettotte.fishtank.ui.theme.White
 import com.barrettotte.fishtank.ui.theme.Gray
 import com.barrettotte.fishtank.ui.theme.Primary
 import com.barrettotte.fishtank.ui.theme.Secondary
@@ -107,22 +110,61 @@ fun GridScreen(
                     }
                 }
                 uiState.error != null -> {
-                    Box(
+                    Column(
                         modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
                     ) {
                         Text(
                             text = uiState.error ?: "Error",
-                            color = MaterialTheme.colorScheme.error,
+                            color = Danger,
+                            fontSize = 16.sp,
                         )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(
+                            onClick = { viewModel.fetchStreams() },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Primary,
+                                contentColor = Color.White,
+                            ),
+                        ) {
+                            Text("Retry")
+                        }
                     }
                 }
                 else -> {
                     CameraGrid(
                         cameras = uiState.cameras,
-                        onCameraSelected = onCameraSelected,
+                        onCameraSelected = { streamId ->
+                            val tile = uiState.cameras.find { it.stream.id == streamId }
+                            if (tile != null && !tile.isOnline) {
+                                val name = tile.stream.displayName ?: tile.stream.name ?: streamId
+                                viewModel.showOfflineWarning(name)
+                            } else {
+                                onCameraSelected(streamId)
+                            }
+                        },
                     )
                 }
+            }
+        }
+
+        // Warning toast overlay
+        if (uiState.warningMessage != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = 48.dp),
+                contentAlignment = Alignment.BottomCenter,
+            ) {
+                Text(
+                    text = uiState.warningMessage!!,
+                    color = White,
+                    fontSize = 14.sp,
+                    modifier = Modifier
+                        .background(Danger.copy(alpha = 0.9f), RoundedCornerShape(8.dp))
+                        .padding(horizontal = 24.dp, vertical = 12.dp),
+                )
             }
         }
     }

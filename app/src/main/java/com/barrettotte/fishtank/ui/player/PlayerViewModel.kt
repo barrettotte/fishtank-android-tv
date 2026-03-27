@@ -36,6 +36,7 @@ data class PlayerUiState(
     val showSettingsDialog: Boolean = false,
     val cameras: List<CameraListItem> = emptyList(),
     val isLoading: Boolean = true,
+    val playbackError: String? = null,
 )
 
 /** Camera item in the switcher list. */
@@ -209,6 +210,18 @@ class PlayerViewModel(
             showSettingsDialog = false,
             showInfoOverlay = false,
         )
+    }
+
+    /** Set a playback error message. */
+    fun setPlaybackError(message: String) {
+        Logger.e(TAG, "Playback error: $message")
+        _uiState.value = _uiState.value.copy(playbackError = message)
+    }
+
+    /** Retry loading the current stream. */
+    fun retry() {
+        _uiState.value = _uiState.value.copy(playbackError = null, isLoading = true)
+        loadPreferencesAndStream(_uiState.value.streamId)
     }
 
     /** Get the display label for the current quality setting. */

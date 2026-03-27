@@ -5,4 +5,8 @@
         <item name="android:colorAccent">@color/accent</item>
         <item name="android:windowBackground">@color/dark</item>
     </style>
+
+    <style name="Theme.Fishtank.Splash" parent="@style/Theme.Leanback">
+        <item name="android:windowBackground">@drawable/splash_background</item>
+    </style>
 </resources>

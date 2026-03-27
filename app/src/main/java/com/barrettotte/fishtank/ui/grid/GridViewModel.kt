@@ -37,6 +37,7 @@ data class GridUiState(
     val currentTime: String = "",
     val isLoading: Boolean = true,
     val error: String? = null,
+    val warningMessage: String? = null,
 )
 
 /** ViewModel for the camera grid screen. */
@@ -91,13 +92,29 @@ class GridViewModel(
                     isLoading = false,
                 )
             } else {
-                val error = result.exceptionOrNull()
-                Logger.e(TAG, "Failed to load streams: ${error?.message}")
+                val exception = result.exceptionOrNull()
+                Logger.e(TAG, "Failed to load streams: ${exception?.message}")
+
+                val message = when (exception) {
+                    is TokenExpiredException -> "Session expired. Please log in again."
+                    is java.net.UnknownHostException -> "No internet connection"
+                    is java.net.SocketTimeoutException -> "Connection timed out"
+                    else -> "Failed to load cameras. Please try again."
+                }
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = error?.message ?: "Failed to load streams",
+                    error = message,
                 )
             }
+        }
+    }
+
+    /** Show a warning when an offline camera is selected. Auto-dismisses after 3 seconds. */
+    fun showOfflineWarning(cameraName: String) {
+        _uiState.value = _uiState.value.copy(warningMessage = "$cameraName is offline")
+        viewModelScope.launch {
+            delay(3000)
+            _uiState.value = _uiState.value.copy(warningMessage = null)
         }
     }
 

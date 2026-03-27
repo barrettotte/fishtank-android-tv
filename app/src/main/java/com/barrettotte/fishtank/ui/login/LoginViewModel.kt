@@ -82,7 +82,14 @@ class LoginViewModel(
                 _uiState.value = _uiState.value.copy(isLoading = false)
                 onSuccess()
             } else {
-                val message = result.exceptionOrNull()?.message ?: "Login failed"
+                val exception = result.exceptionOrNull()
+                val message = when {
+                    exception is java.net.UnknownHostException -> "No internet connection"
+                    exception is java.net.SocketTimeoutException -> "Connection timed out"
+                    exception?.message?.contains("401") == true -> "Invalid email or password"
+                    exception?.message?.contains("403") == true -> "Access denied"
+                    else -> "Login failed. Please try again."
+                }
                 _uiState.value = _uiState.value.copy(isLoading = false, error = message)
             }
         }

@@ -36,6 +36,7 @@ class MainActivity : ComponentActivity() {
     var keyEventInterceptor: ((android.view.KeyEvent) -> Boolean)? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        setTheme(R.style.Theme_Fishtank)
         super.onCreate(savedInstanceState)
         setContent {
             FishtankTheme {
