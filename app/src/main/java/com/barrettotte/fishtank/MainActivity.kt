@@ -44,6 +44,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @Suppress("RestrictedApi")
     override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean {
         if (event.action == android.view.KeyEvent.ACTION_DOWN) {
             Logger.d("Keys", "keyCode=${event.keyCode} interceptor=${keyEventInterceptor != null}")

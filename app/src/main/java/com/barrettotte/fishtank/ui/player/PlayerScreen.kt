@@ -55,12 +55,15 @@ fun PlayerScreen(
         }
     }
 
-    // Update media source when stream URL changes
+    // Update media source when stream URL changes (camera switch, quality, or server change)
     LaunchedEffect(uiState.streamUrl) {
         if (uiState.streamUrl.isNotEmpty()) {
+            Logger.d("Player", "Loading stream URL: ${uiState.streamUrl.substringBefore("?")}")
+            exoPlayer.stop()
             val mediaItem = MediaItem.fromUri(uiState.streamUrl)
             exoPlayer.setMediaItem(mediaItem)
             exoPlayer.prepare()
+            exoPlayer.playWhenReady = true
         }
     }
 
@@ -106,10 +109,8 @@ fun PlayerScreen(
                     SurfaceView(ctx).apply {
                         isFocusable = false
                         isFocusableInTouchMode = false
+                        exoPlayer.setVideoSurfaceView(this)
                     }
-                },
-                update = { surfaceView ->
-                    exoPlayer.setVideoSurfaceView(surfaceView)
                 },
                 modifier = Modifier.fillMaxSize(),
             )
@@ -165,19 +166,19 @@ private fun handleKeyEvent(
             true
         }
         AndroidKeyEvent.KEYCODE_DPAD_UP -> {
-            if (!uiState.showSettingsDialog) {
+            if (!uiState.showCameraSwitcher && !uiState.showSettingsDialog) {
                 viewModel.toggleCameraSwitcher()
                 true
             } else {
-                false
+                false // Let overlays handle their own D-pad navigation
             }
         }
         AndroidKeyEvent.KEYCODE_DPAD_DOWN -> {
-            if (!uiState.showCameraSwitcher) {
+            if (!uiState.showCameraSwitcher && !uiState.showSettingsDialog) {
                 viewModel.toggleSettingsDialog()
                 true
             } else {
-                false
+                false // Let overlays handle their own D-pad navigation
             }
         }
         AndroidKeyEvent.KEYCODE_DPAD_CENTER, AndroidKeyEvent.KEYCODE_ENTER -> {
