@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -26,7 +27,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -45,6 +48,7 @@ import androidx.compose.ui.unit.sp
 import com.barrettotte.fishtank.R
 
 import com.barrettotte.fishtank.util.Constants
+import com.barrettotte.fishtank.ui.theme.Danger
 import com.barrettotte.fishtank.ui.theme.Dark
 import com.barrettotte.fishtank.ui.theme.Gray
 import com.barrettotte.fishtank.ui.theme.Primary
@@ -89,6 +93,7 @@ fun GridScreen(
                 onlineCount = uiState.onlineCount,
                 totalCount = uiState.totalCount,
                 currentTime = uiState.currentTime,
+                onLogout = onLogout,
             )
 
             // Content
@@ -123,13 +128,14 @@ fun GridScreen(
     }
 }
 
-/** Header bar with display name, online count, and clock. */
+/** Header bar with display name, online count, clock, and logout. */
 @Composable
 private fun GridHeader(
     displayName: String,
     onlineCount: Int,
     totalCount: Int,
     currentTime: String,
+    onLogout: () -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -164,6 +170,21 @@ private fun GridHeader(
                 text = currentTime,
                 color = Color.White,
                 fontSize = 14.sp,
+            )
+            HeaderSeparator()
+            var logoutFocused by remember { mutableStateOf(false) }
+            Text(
+                text = "Log Out",
+                color = if (logoutFocused) Color.White else Danger,
+                fontSize = 14.sp,
+                modifier = Modifier
+                    .onFocusChanged { logoutFocused = it.hasFocus || it.isFocused }
+                    .background(
+                        if (logoutFocused) Danger else Color.Transparent,
+                        RoundedCornerShape(4.dp),
+                    )
+                    .clickable { onLogout() }
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
             )
         }
     }

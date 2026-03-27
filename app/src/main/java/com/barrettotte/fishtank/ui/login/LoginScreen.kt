@@ -1,5 +1,6 @@
 package com.barrettotte.fishtank.ui.login
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,15 +26,22 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
+import com.barrettotte.fishtank.BuildConfig
+import com.barrettotte.fishtank.R
 import com.barrettotte.fishtank.ui.theme.Dark
 import com.barrettotte.fishtank.ui.theme.Danger
 import com.barrettotte.fishtank.ui.theme.Gray
 import com.barrettotte.fishtank.ui.theme.Primary
+import com.barrettotte.fishtank.ui.theme.Secondary
 import com.barrettotte.fishtank.ui.theme.White
 
 /** Login screen with email/password fields and login button. */
@@ -48,7 +56,10 @@ fun LoginScreen(viewModel: LoginViewModel, onLoginSuccess: () -> Unit) {
 
     // Show loading while checking cached token
     if (uiState.isCheckingToken) {
-        Box(modifier = Modifier.fillMaxSize().background(Dark), contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier.fillMaxSize().background(Dark),
+            contentAlignment = Alignment.Center,
+        ) {
             CircularProgressIndicator(color = Primary)
         }
         return
@@ -65,14 +76,31 @@ fun LoginScreen(viewModel: LoginViewModel, onLoginSuccess: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
-            // App title
-            Text(
-                text = "Fishtank",
-                style = MaterialTheme.typography.headlineLarge,
-                color = Primary,
+            // Logo
+            Image(
+                painter = painterResource(id = R.drawable.logo_stripe),
+                contentDescription = "Fishtank",
+                modifier = Modifier.height(60.dp),
+                contentScale = ContentScale.Fit,
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            // Season
+            Text(
+                text = "Season 5",
+                color = Gray,
+                fontSize = 16.sp,
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Prompt
+            Text(
+                text = "Press OK to log in",
+                color = White,
+                fontSize = 18.sp,
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Email field
             OutlinedTextField(
@@ -97,7 +125,7 @@ fun LoginScreen(viewModel: LoginViewModel, onLoginSuccess: () -> Unit) {
                 modifier = Modifier.fillMaxWidth(),
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             // Password field
             OutlinedTextField(
@@ -126,7 +154,7 @@ fun LoginScreen(viewModel: LoginViewModel, onLoginSuccess: () -> Unit) {
                 modifier = Modifier.fillMaxWidth(),
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Error message
             if (uiState.error != null) {
@@ -135,7 +163,7 @@ fun LoginScreen(viewModel: LoginViewModel, onLoginSuccess: () -> Unit) {
                     color = Danger,
                     style = MaterialTheme.typography.bodyMedium,
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
             }
 
             // Login button
@@ -143,10 +171,10 @@ fun LoginScreen(viewModel: LoginViewModel, onLoginSuccess: () -> Unit) {
                 onClick = { viewModel.login(onLoginSuccess) },
                 enabled = !uiState.isLoading,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Primary,
+                    containerColor = Secondary,
                     contentColor = White,
                 ),
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().height(48.dp),
             ) {
                 if (uiState.isLoading) {
                     CircularProgressIndicator(
@@ -155,9 +183,25 @@ fun LoginScreen(viewModel: LoginViewModel, onLoginSuccess: () -> Unit) {
                         strokeWidth = 2.dp,
                     )
                 } else {
-                    Text("Log In")
+                    Text("Log In", fontSize = 16.sp)
                 }
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Footer
+            Text(
+                text = "Unofficial Android TV App - v${BuildConfig.VERSION_NAME}",
+                color = Gray,
+                fontSize = 12.sp,
+                textAlign = TextAlign.Center,
+            )
+            Text(
+                text = "github.com/barrettotte/fishtank-android-tv",
+                color = Gray,
+                fontSize = 12.sp,
+                textAlign = TextAlign.Center,
+            )
         }
     }
 }
