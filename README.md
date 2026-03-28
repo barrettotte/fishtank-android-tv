@@ -4,6 +4,70 @@ A basic app for watching Fishtank.live on Android TV (unofficial).
 
 Port of the [Roku app](https://github.com/barrettotte/fishtank-roku-app) to Android TV / Fire TV.
 
+## Install (Sideload)
+
+Download the latest APK from [Releases](https://github.com/barrettotte/fishtank-android-tv/releases).
+
+> **Note:** This app is not available on the Google Play Store or Amazon Appstore. It uses an unofficial, reverse-engineered API and is not affiliated with Fishtank.live. Sideloading is the only way to install it.
+
+### Fire TV Stick
+
+1. On the Fire TV Stick: **Settings > My Fire TV > Developer Options**
+   - Enable **ADB Debugging**
+   - Enable **Apps from Unknown Sources**
+2. Note the IP from **Settings > My Fire TV > About > Network**
+3. From a computer on the same network with [ADB](https://developer.android.com/tools/adb) installed:
+
+```sh
+adb connect <fire-tv-ip>:5555
+adb install fishtank-android-tv-v0.1.0.apk
+```
+
+Or install the [Downloader](https://www.amazon.com/dp/B01N0BP507) app on the Fire TV and enter the APK download URL from GitHub releases directly.
+
+> **Fire TV Stick 2nd Gen:** Developer Options is hidden by default. Go to **Settings > My Fire TV > About** and click on **Fire TV Stick** 7 times to unlock it.
+
+### Fire TV (Cube, Smart TV, etc.)
+
+1. **Settings > My Fire TV > Developer Options**
+   - Enable **ADB Debugging**
+   - Enable **Apps from Unknown Sources**
+2. Install via ADB from a computer or use the Downloader app (same as above)
+
+### Android TV (Google TV, Sony, Nvidia Shield, etc.)
+
+1. **Settings > Device Preferences > About** and click **Build** 7 times to enable Developer Options
+2. **Settings > Device Preferences > Developer Options**
+   - Enable **USB Debugging** (or **Network Debugging** for wireless ADB)
+   - Enable **Install from Unknown Sources**
+3. Install via ADB:
+
+```sh
+adb connect <tv-ip>:5555
+adb install fishtank-android-tv-v0.1.0.apk
+```
+
+Or use a file manager app to open the APK from a USB drive.
+
+## Controls
+
+### Camera Grid
+
+| Button | Action |
+|--------|--------|
+| D-pad | Navigate cameras |
+| OK | Open camera stream |
+| Menu | Log out |
+
+### Video Player
+
+| Button | Action |
+|--------|--------|
+| OK | Show camera name, quality, and server info |
+| Up | Open camera switcher |
+| Down | Open stream settings (quality and server) |
+| Back | Close overlay or return to grid |
+
 ## Developer Setup
 
 ### Prerequisites
