@@ -20,6 +20,8 @@ class PreferencesRepository(private val context: Context) {
         private val ACCESS_TOKEN = stringPreferencesKey("access_token")
         private val LIVE_STREAM_TOKEN = stringPreferencesKey("live_stream_token")
         private val DISPLAY_NAME = stringPreferencesKey("display_name")
+        private val EMAIL = stringPreferencesKey("email")
+        private val PASSWORD = stringPreferencesKey("password")
         private val QUALITY = stringPreferencesKey("quality")
         private val SERVER = stringPreferencesKey("server")
     }
@@ -59,12 +61,34 @@ class PreferencesRepository(private val context: Context) {
         }.first()
     }
 
+    /** Get the stored email, or empty string if not set. */
+    suspend fun getEmail(): String {
+        return context.dataStore.data.map { prefs ->
+            prefs[EMAIL] ?: ""
+        }.first()
+    }
+
+    /** Get the stored password, or empty string if not set. */
+    suspend fun getPassword(): String {
+        return context.dataStore.data.map { prefs ->
+            prefs[PASSWORD] ?: ""
+        }.first()
+    }
+
     /** Save authentication tokens and display name after login. */
     suspend fun saveSession(accessToken: String, liveStreamToken: String, displayName: String) {
         context.dataStore.edit { prefs ->
             prefs[ACCESS_TOKEN] = accessToken
             prefs[LIVE_STREAM_TOKEN] = liveStreamToken
             prefs[DISPLAY_NAME] = displayName
+        }
+    }
+
+    /** Save login credentials for automatic token refresh. */
+    suspend fun saveCredentials(email: String, password: String) {
+        context.dataStore.edit { prefs ->
+            prefs[EMAIL] = email
+            prefs[PASSWORD] = password
         }
     }
 
@@ -88,6 +112,8 @@ class PreferencesRepository(private val context: Context) {
             prefs.remove(ACCESS_TOKEN)
             prefs.remove(LIVE_STREAM_TOKEN)
             prefs.remove(DISPLAY_NAME)
+            prefs.remove(EMAIL)
+            prefs.remove(PASSWORD)
         }
     }
 }

@@ -2,6 +2,7 @@ package com.barrettotte.fishtank.ui.grid
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
@@ -35,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
@@ -52,8 +54,9 @@ import com.barrettotte.fishtank.R
 import com.barrettotte.fishtank.util.Constants
 import com.barrettotte.fishtank.ui.theme.Danger
 import com.barrettotte.fishtank.ui.theme.Dark
-import com.barrettotte.fishtank.ui.theme.White
 import com.barrettotte.fishtank.ui.theme.Gray
+import com.barrettotte.fishtank.ui.theme.PanelBorder
+import com.barrettotte.fishtank.ui.theme.White
 import com.barrettotte.fishtank.ui.theme.Primary
 import com.barrettotte.fishtank.ui.theme.Secondary
 
@@ -65,6 +68,7 @@ fun GridScreen(
     onLogout: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var showLogoutDialog by remember { mutableStateOf(false) }
 
     // Handle token expiry by redirecting to login
     LaunchedEffect(uiState.error) {
@@ -81,7 +85,7 @@ fun GridScreen(
             .background(Dark)
             .onKeyEvent { event ->
                 if (event.type == KeyEventType.KeyDown && event.key == Key.Menu) {
-                    onLogout()
+                    showLogoutDialog = true
                     true
                 } else {
                     false
@@ -96,7 +100,7 @@ fun GridScreen(
                 onlineCount = uiState.onlineCount,
                 totalCount = uiState.totalCount,
                 currentTime = uiState.currentTime,
-                onLogout = onLogout,
+                onLogout = { showLogoutDialog = true },
             )
 
             // Content
@@ -165,6 +169,57 @@ fun GridScreen(
                         .background(Danger.copy(alpha = 0.9f), RoundedCornerShape(8.dp))
                         .padding(horizontal = 24.dp, vertical = 12.dp),
                 )
+            }
+        }
+
+        // Logout confirmation dialog
+        if (showLogoutDialog) {
+            val logoutFocusRequester = remember { FocusRequester() }
+
+            LaunchedEffect(Unit) {
+                logoutFocusRequester.requestFocus()
+            }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.6f))
+                    .clickable { showLogoutDialog = false },
+                contentAlignment = Alignment.Center,
+            ) {
+                Column(
+                    modifier = Modifier
+                        .width(280.dp)
+                        .background(Dark, RoundedCornerShape(8.dp))
+                        .border(1.dp, PanelBorder, RoundedCornerShape(8.dp))
+                        .clickable(enabled = false) {}
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        text = "Log Out?",
+                        color = White,
+                        fontSize = 18.sp,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                    )
+                    Spacer(modifier = Modifier.height(20.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        DialogButton(
+                            text = "Log Out",
+                            baseColor = Danger,
+                            focusRequester = logoutFocusRequester,
+                            onClick = {
+                                showLogoutDialog = false
+                                onLogout()
+                            },
+                        )
+                        DialogButton(
+                            text = "Cancel",
+                            baseColor = Gray,
+                            onClick = { showLogoutDialog = false },
+                        )
+                    }
+                }
             }
         }
     }
@@ -271,5 +326,35 @@ private fun CameraGrid(
                 focusRequester = if (index == 0) firstFocusRequester else null,
             )
         }
+    }
+}
+
+/** A button that shows an orange highlight when focused via D-pad. */
+@Composable
+private fun DialogButton(
+    text: String,
+    baseColor: Color,
+    focusRequester: FocusRequester? = null,
+    onClick: () -> Unit,
+) {
+    var isFocused by remember { mutableStateOf(false) }
+    val bgColor = if (isFocused) Primary else baseColor
+    val focusMod = if (focusRequester != null) {
+        Modifier.focusRequester(focusRequester)
+    } else {
+        Modifier
+    }
+
+    Button(
+        onClick = onClick,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = bgColor,
+            contentColor = White,
+        ),
+        modifier = Modifier
+            .onFocusChanged { isFocused = it.hasFocus || it.isFocused }
+            .then(focusMod),
+    ) {
+        Text(text)
     }
 }

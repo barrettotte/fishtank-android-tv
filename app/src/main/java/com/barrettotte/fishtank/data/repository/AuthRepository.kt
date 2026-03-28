@@ -51,6 +51,7 @@ class AuthRepository(
             Logger.d(TAG, "Display name: '$displayName'")
 
             preferencesRepository.saveSession(accessToken, liveStreamToken, displayName)
+            preferencesRepository.saveCredentials(email, password)
             Logger.d(TAG, "Session saved to DataStore")
 
             Result.success(Unit)
@@ -108,12 +109,26 @@ class AuthRepository(
         }
     }
 
-    /** Refresh the live stream token by re-validating. Call before playing a stream. */
+    /** Refresh the live stream token by re-logging in. Call before playing a stream. */
     suspend fun refreshLiveStreamToken(): String {
         Logger.d(TAG, "Refreshing live stream token...")
-        validateToken()
+        val email = preferencesRepository.getEmail()
+        val password = preferencesRepository.getPassword()
+        if (email.isNotEmpty() && password.isNotEmpty()) {
+            Logger.d(TAG, "Re-logging in to get fresh token...")
+            login(email, password)
+        } else {
+            Logger.d(TAG, "No stored credentials, validating existing token...")
+            validateToken()
+        }
         return preferencesRepository.getLiveStreamToken()
     }
+
+    /** Get stored email for auto-login. */
+    suspend fun getStoredEmail(): String = preferencesRepository.getEmail()
+
+    /** Get stored password for auto-login. */
+    suspend fun getStoredPassword(): String = preferencesRepository.getPassword()
 
     /** Clear stored auth data. */
     suspend fun logout() {

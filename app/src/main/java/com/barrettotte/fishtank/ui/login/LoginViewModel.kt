@@ -33,19 +33,22 @@ class LoginViewModel(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isCheckingToken = true)
 
-            // Try auto-login from .env credentials if available.
             // Always do a full login to get a fresh live_stream_token (expires every 30 min).
-            if (autoLoginEmail.isNotEmpty() && autoLoginPassword.isNotEmpty()) {
+            // Try .env credentials first, then stored credentials from previous login.
+            val email = autoLoginEmail.ifEmpty { authRepository.getStoredEmail() }
+            val password = autoLoginPassword.ifEmpty { authRepository.getStoredPassword() }
+
+            if (email.isNotEmpty() && password.isNotEmpty()) {
                 _uiState.value = _uiState.value.copy(
-                    email = autoLoginEmail,
-                    password = autoLoginPassword,
+                    email = email,
+                    password = password,
                     isCheckingToken = false,
                 )
                 login(onSuccess)
                 return@launch
             }
 
-            // No auto-login credentials - try cached token
+            // No credentials anywhere - try cached token (will have stale live_stream_token)
             val isValid = authRepository.validateToken()
             if (isValid) {
                 onSuccess()

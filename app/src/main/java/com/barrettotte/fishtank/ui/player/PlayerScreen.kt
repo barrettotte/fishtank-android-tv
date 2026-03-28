@@ -1,6 +1,7 @@
 package com.barrettotte.fishtank.ui.player
 
 import android.view.KeyEvent as AndroidKeyEvent
+import android.view.SurfaceHolder
 import android.view.SurfaceView
 
 import androidx.annotation.OptIn
@@ -23,7 +24,9 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,6 +38,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
 
 import com.barrettotte.fishtank.MainActivity
@@ -55,34 +59,52 @@ fun PlayerScreen(
     val context = LocalContext.current
     val activity = context as? MainActivity
     val uiState by viewModel.uiState.collectAsState()
+    var isBuffering by remember { mutableStateOf(false) }
+    var surfaceReady by remember { mutableStateOf(false) }
 
-    // Create ExoPlayer instance with error handling
+    // Create ExoPlayer with live-stream-friendly buffer settings
     val exoPlayer = remember {
-        ExoPlayer.Builder(context).build().apply {
-            playWhenReady = true
-            addListener(object : Player.Listener {
-                override fun onPlayerError(error: PlaybackException) {
-                    val message = when (error.errorCode) {
-                        PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED,
-                        PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT ->
-                            "Network error. Check your connection."
-                        PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS ->
-                            "Stream unavailable. Try a different server."
-                        PlaybackException.ERROR_CODE_IO_CLEARTEXT_NOT_PERMITTED,
-                        PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND ->
-                            "Stream not found."
-                        else -> "Playback error. Try again."
+        val loadControl = DefaultLoadControl.Builder()
+            .setBufferDurationsMs(
+                15_000, // minBufferMs
+                30_000, // maxBufferMs
+                1_500,  // bufferForPlaybackMs (faster start)
+                3_000,  // bufferForPlaybackAfterRebufferMs
+            )
+            .build()
+
+        ExoPlayer.Builder(context)
+            .setLoadControl(loadControl)
+            .build()
+            .apply {
+                playWhenReady = true
+                addListener(object : Player.Listener {
+                    override fun onPlaybackStateChanged(state: Int) {
+                        isBuffering = state == Player.STATE_BUFFERING
                     }
-                    viewModel.setPlaybackError(message)
-                }
-            })
-        }
+
+                    override fun onPlayerError(error: PlaybackException) {
+                        val message = when (error.errorCode) {
+                            PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED,
+                            PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT ->
+                                "Network error. Check your connection."
+                            PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS ->
+                                "Stream unavailable. Try a different server."
+                            PlaybackException.ERROR_CODE_IO_CLEARTEXT_NOT_PERMITTED,
+                            PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND ->
+                                "Stream not found."
+                            else -> "Playback error. Try again."
+                        }
+                        viewModel.setPlaybackError(message)
+                    }
+                })
+            }
     }
 
-    // Update media source when stream URL changes (camera switch, quality, or server change)
-    LaunchedEffect(uiState.streamUrl) {
-        if (uiState.streamUrl.isNotEmpty()) {
-            Logger.d("Player", "Loading stream URL: ${uiState.streamUrl.substringBefore("?")}")
+    // Only load media after surface is ready AND we have a URL
+    LaunchedEffect(uiState.streamUrl, surfaceReady) {
+        if (uiState.streamUrl.isNotEmpty() && surfaceReady) {
+            Logger.d("Player", "Surface ready, loading: ${uiState.streamUrl.substringBefore("?")}")
             exoPlayer.stop()
             val mediaItem = MediaItem.fromUri(uiState.streamUrl)
             exoPlayer.setMediaItem(mediaItem)
@@ -118,26 +140,36 @@ fun PlayerScreen(
             .fillMaxSize()
             .background(Dark),
     ) {
-        // Loading indicator
-        if (uiState.isLoading) {
+        // Video surface - SurfaceHolder callback ensures surface is ready before playback
+        AndroidView(
+            factory = { ctx ->
+                SurfaceView(ctx).apply {
+                    isFocusable = false
+                    isFocusableInTouchMode = false
+                    holder.addCallback(object : SurfaceHolder.Callback {
+                        override fun surfaceCreated(holder: SurfaceHolder) {
+                            Logger.d("Player", "Surface created")
+                            surfaceReady = true
+                        }
+                        override fun surfaceChanged(holder: SurfaceHolder, format: Int, w: Int, h: Int) {}
+                        override fun surfaceDestroyed(holder: SurfaceHolder) {
+                            surfaceReady = false
+                        }
+                    })
+                    exoPlayer.setVideoSurfaceView(this)
+                }
+            },
+            modifier = Modifier.fillMaxSize(),
+        )
+
+        // Loading/buffering indicator on top of video
+        if (uiState.isLoading || isBuffering) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center,
             ) {
                 CircularProgressIndicator(color = Primary)
             }
-        } else {
-            // Bare SurfaceView - no focus issues unlike PlayerView
-            AndroidView(
-                factory = { ctx ->
-                    SurfaceView(ctx).apply {
-                        isFocusable = false
-                        isFocusableInTouchMode = false
-                        exoPlayer.setVideoSurfaceView(this)
-                    }
-                },
-                modifier = Modifier.fillMaxSize(),
-            )
         }
 
         // Playback error overlay

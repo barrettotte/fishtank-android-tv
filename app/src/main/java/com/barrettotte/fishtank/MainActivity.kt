@@ -2,6 +2,9 @@ package com.barrettotte.fishtank
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.tween
 
 import com.barrettotte.fishtank.util.Logger
 import androidx.activity.compose.setContent
@@ -74,7 +77,12 @@ fun FishtankNavHost() {
     val autoLoginEmail = BuildConfig.FT_EMAIL
     val autoLoginPassword = BuildConfig.FT_PASSWORD
 
-    NavHost(navController = navController, startDestination = "login") {
+    NavHost(
+        navController = navController,
+        startDestination = "login",
+        enterTransition = { fadeIn(animationSpec = tween(300)) },
+        exitTransition = { fadeOut(animationSpec = tween(300)) },
+    ) {
         composable("login") {
             val viewModel = remember {
                 LoginViewModel(authRepository, autoLoginEmail, autoLoginPassword)
