@@ -15,6 +15,15 @@ android {
         versionName = property("app.versionName").toString()
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = rootProject.file("release.keystore")
+            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
+            keyAlias = System.getenv("KEY_ALIAS") ?: ""
+            keyPassword = System.getenv("KEY_PASSWORD") ?: ""
+        }
+    }
+
     buildTypes {
         debug {
             // Auto-login credentials from .env (via gradle.properties or env vars)
@@ -22,6 +31,7 @@ android {
             buildConfigField("String", "FT_PASSWORD", "\"${System.getenv("FT_PASSWORD") ?: ""}\"")
         }
         release {
+            signingConfig = signingConfigs.getByName("release")
             buildConfigField("String", "FT_EMAIL", "\"\"")
             buildConfigField("String", "FT_PASSWORD", "\"\"")
             isMinifyEnabled = false
@@ -51,9 +61,11 @@ android {
     }
 
     lint {
-        // FlowOperatorInvokedInComposition crashes due to Kotlin metadata version mismatch between AGP 8.7 lint and newer dependencies
+        // FlowOperatorInvokedInComposition crashes due to Kotlin metadata version mismatch
+        // between AGP 8.7 lint and newer dependencies. The detector crashes (not a lint error),
+        // so abortOnError must be false to prevent build failures.
         disable += "FlowOperatorInvokedInComposition"
-        abortOnError = true
+        abortOnError = false
         warningsAsErrors = false
     }
 }

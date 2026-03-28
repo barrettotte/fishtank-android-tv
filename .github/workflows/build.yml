@@ -1,0 +1,36 @@
+name: Build
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+
+      - name: Lint
+        run: ./gradlew lintDebug
+
+      - name: Test
+        run: ./gradlew test
+
+      - name: Build
+        run: ./gradlew assembleDebug
+
+      - name: Upload build artifact
+        if: github.ref == 'refs/heads/master'
+        uses: actions/upload-artifact@v4
+        with:
+          name: fishtank-android-tv-debug
+          path: app/build/outputs/apk/debug/app-debug.apk

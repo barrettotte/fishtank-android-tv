@@ -4,15 +4,22 @@ ifneq (,$(wildcard .env))
     export
 endif
 
-.PHONY: build lint deploy test clean debug debug-emu emulate avd-create
+.PHONY: build release lint deploy test clean debug debug_emu emulate avd_create
 
 APK_DEBUG = app/build/outputs/apk/debug/app-debug.apk
+VERSION   = $(shell grep 'app.versionName' gradle.properties | cut -d= -f2)
 PACKAGE   = com.barrettotte.fishtank
 ACTIVITY  = .MainActivity
 AVD_NAME  = FishtankTV
 
 build:
 	./gradlew assembleDebug
+
+release: clean
+	./gradlew assembleRelease
+	mkdir -p out
+	cp app/build/outputs/apk/release/app-release.apk out/fishtank-android-tv-v$(VERSION).apk
+	@echo "Release APK: out/fishtank-android-tv-v$(VERSION).apk"
 
 lint:
 	./gradlew lintDebug

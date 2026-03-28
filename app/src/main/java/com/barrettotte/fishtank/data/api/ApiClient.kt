@@ -5,6 +5,7 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
+import com.barrettotte.fishtank.BuildConfig
 import com.barrettotte.fishtank.data.repository.PreferencesRepository
 import com.barrettotte.fishtank.util.Constants
 
@@ -14,7 +15,11 @@ object ApiClient {
     /** Build and return the FishtankApi instance with auth and logging interceptors. */
     fun create(preferencesRepository: PreferencesRepository): FishtankApi {
         val loggingInterceptor = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
+            level = if (BuildConfig.DEBUG) {
+                HttpLoggingInterceptor.Level.BODY
+            } else {
+                HttpLoggingInterceptor.Level.NONE
+            }
         }
 
         val okHttpClient = OkHttpClient.Builder()

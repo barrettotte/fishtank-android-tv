@@ -16,5 +16,8 @@ local.properties
 *.keystore
 *.jks
 
+# Release output
+out/
+
 # Environment
 .env
