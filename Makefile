@@ -6,6 +6,10 @@ endif
 
 .PHONY: build release lint deploy test clean debug debug_emu emulate avd_create
 
+# Use JDK 17 for Gradle if available (distrobox has JDK 25 as default)
+JAVA_HOME ?= $(wildcard /usr/lib/jvm/java-17-openjdk)
+export JAVA_HOME
+
 APK_DEBUG = app/build/outputs/apk/debug/app-debug.apk
 VERSION   = $(shell grep 'app.versionName' gradle.properties | cut -d= -f2)
 PACKAGE   = com.barrettotte.fishtank
