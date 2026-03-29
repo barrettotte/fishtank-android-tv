@@ -81,6 +81,9 @@ fun PlayerScreen(
                 addListener(object : Player.Listener {
                     override fun onPlaybackStateChanged(state: Int) {
                         isBuffering = state == Player.STATE_BUFFERING
+                        if (state == Player.STATE_READY) {
+                            viewModel.onPlaybackStarted()
+                        }
                     }
 
                     override fun onPlayerError(error: PlaybackException) {

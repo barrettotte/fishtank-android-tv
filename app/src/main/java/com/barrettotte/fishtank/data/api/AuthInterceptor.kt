@@ -1,6 +1,5 @@
 package com.barrettotte.fishtank.data.api
 
-import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.Response
 
@@ -17,9 +16,8 @@ class AuthInterceptor(private val preferencesRepository: PreferencesRepository) 
             return chain.proceed(originalRequest)
         }
 
-        val token = runBlocking { 
-            preferencesRepository.getAccessToken() 
-        }
+        // Use in-memory cached token to avoid blocking on DataStore I/O
+        val token = preferencesRepository.cachedAccessToken
         val authenticatedRequest = if (token.isNotEmpty()) {
             originalRequest.newBuilder().header("Authorization", "Bearer $token").build()
         } else {

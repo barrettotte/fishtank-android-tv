@@ -83,6 +83,7 @@ class PlayerViewModel(
 
     private var streamData: StreamData? = null
     private var infoOverlayJob: Job? = null
+    private var hasAutoRetried = false
 
     init {
         loadPreferencesAndStream(initialStreamId)
@@ -114,12 +115,10 @@ class PlayerViewModel(
     }
 
     /** Build the HLS stream URL for the given stream ID. */
-    private fun buildStreamUrl(streamId: String) {
+    private suspend fun buildStreamUrl(streamId: String) {
         val data = streamData ?: return
         val state = _uiState.value
-        val liveStreamToken = runCatching {
-            kotlinx.coroutines.runBlocking { preferencesRepository.getLiveStreamToken() }
-        }.getOrDefault("")
+        val liveStreamToken = preferencesRepository.getLiveStreamToken()
 
         val loadBalancerServer = data.loadBalancerMap[streamId] ?: Constants.DEFAULT_SERVER
         val server = if (state.server == "auto") loadBalancerServer else state.server
@@ -128,7 +127,7 @@ class PlayerViewModel(
         val cameraName = stream?.displayName ?: stream?.name ?: streamId
 
         val url = StreamUrls.buildStreamUrl(server, streamId, liveStreamToken, state.quality)
-        Logger.d(TAG, "Stream URL built for '$cameraName': $url")
+        Logger.d(TAG, "Stream URL built for '$cameraName' on $server")
 
         _uiState.value = _uiState.value.copy(
             streamId = streamId,
@@ -154,25 +153,31 @@ class PlayerViewModel(
     /** Switch to a different camera stream. */
     fun switchCamera(streamId: String) {
         Logger.d(TAG, "Switching to camera: $streamId")
-        buildStreamUrl(streamId)
-        buildCameraList(streamId)
-        _uiState.value = _uiState.value.copy(showCameraSwitcher = false)
+        viewModelScope.launch {
+            buildStreamUrl(streamId)
+            buildCameraList(streamId)
+            _uiState.value = _uiState.value.copy(showCameraSwitcher = false)
+        }
     }
 
     /** Update quality preference and rebuild stream URL. */
     fun setQuality(quality: String) {
         Logger.d(TAG, "Quality changed to: $quality")
         _uiState.value = _uiState.value.copy(quality = quality)
-        viewModelScope.launch { preferencesRepository.saveQuality(quality) }
-        buildStreamUrl(_uiState.value.streamId)
+        viewModelScope.launch {
+            preferencesRepository.saveQuality(quality)
+            buildStreamUrl(_uiState.value.streamId)
+        }
     }
 
     /** Update server preference and rebuild stream URL. */
     fun setServer(server: String) {
         Logger.d(TAG, "Server changed to: $server")
         _uiState.value = _uiState.value.copy(server = server)
-        viewModelScope.launch { preferencesRepository.saveServer(server) }
-        buildStreamUrl(_uiState.value.streamId)
+        viewModelScope.launch {
+            preferencesRepository.saveServer(server)
+            buildStreamUrl(_uiState.value.streamId)
+        }
     }
 
     /** Show the info overlay and auto-hide after 3 seconds. */
@@ -212,10 +217,21 @@ class PlayerViewModel(
         )
     }
 
-    /** Set a playback error message. */
+    /** Handle a playback error. Auto-retries once with token refresh before showing error. */
     fun setPlaybackError(message: String) {
-        Logger.e(TAG, "Playback error: $message")
+        if (!hasAutoRetried) {
+            hasAutoRetried = true
+            Logger.d(TAG, "Playback error, auto-retrying with token refresh...")
+            retry()
+            return
+        }
+        Logger.e(TAG, "Playback error (after retry): $message")
         _uiState.value = _uiState.value.copy(playbackError = message)
+    }
+
+    /** Called when playback starts successfully. Resets the auto-retry flag. */
+    fun onPlaybackStarted() {
+        hasAutoRetried = false
     }
 
     /** Retry loading the current stream. */

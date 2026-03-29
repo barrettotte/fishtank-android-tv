@@ -12,7 +12,7 @@ class ProfileRepository(private val api: FishtankApi) {
     /** Fetch the display name for a user by their ID. Returns empty string on failure. */
     suspend fun getDisplayName(userId: String): String {
         return try {
-            Logger.d(TAG, "Fetching profile for user: $userId")
+            Logger.d(TAG, "Fetching user profile...")
             val response = api.getProfile(userId)
 
             if (!response.isSuccessful) {

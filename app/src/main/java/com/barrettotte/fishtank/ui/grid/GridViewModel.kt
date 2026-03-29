@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 
 import com.barrettotte.fishtank.data.model.LiveStream
 import com.barrettotte.fishtank.data.repository.AuthRepository
+import com.barrettotte.fishtank.data.repository.PreferencesRepository
 import com.barrettotte.fishtank.data.repository.StreamRepository
 import com.barrettotte.fishtank.data.repository.TokenExpiredException
 import com.barrettotte.fishtank.util.Constants
@@ -44,22 +45,31 @@ data class GridUiState(
 class GridViewModel(
     private val streamRepository: StreamRepository,
     private val authRepository: AuthRepository,
-    displayName: String,
+    private val preferencesRepository: PreferencesRepository,
 ) : ViewModel() {
 
     companion object {
         private const val TAG = "Grid"
     }
 
-    private val _uiState = MutableStateFlow(GridUiState(displayName = displayName))
+    private val _uiState = MutableStateFlow(GridUiState())
     val uiState: StateFlow<GridUiState> = _uiState
 
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd h:mm a", Locale.US)
 
     init {
+        loadDisplayName()
         fetchStreams()
         startClockTimer()
         startThumbnailRefresh()
+    }
+
+    /** Load display name from preferences asynchronously. */
+    private fun loadDisplayName() {
+        viewModelScope.launch {
+            val name = preferencesRepository.getDisplayName()
+            _uiState.value = _uiState.value.copy(displayName = name)
+        }
     }
 
     /** Fetch camera streams from the API. */
@@ -107,6 +117,13 @@ class GridViewModel(
                 )
             }
         }
+    }
+
+    /** Manually refresh auth tokens. */
+    suspend fun refreshToken() {
+        Logger.d(TAG, "Manual token refresh requested")
+        authRepository.refreshLiveStreamToken()
+        Logger.d(TAG, "Token refreshed")
     }
 
     /** Show a warning when an offline camera is selected. Auto-dismisses after 3 seconds. */

@@ -25,7 +25,7 @@ adb install fishtank-android-tv-v0.1.0.apk
 
 Or install the [Downloader](https://www.amazon.com/dp/B01N0BP507) app on the Fire TV and enter the APK download URL from GitHub releases directly.
 
-> **Fire TV Stick 2nd Gen:** Developer Options is hidden by default. Go to **Settings > My Fire TV > About** and click on **Fire TV Stick** 7 times to unlock it.
+> **Note:** Requires Fire TV Stick 3rd Gen or newer (Android 6.0+ / Fire OS 6+). Fire TV Stick 2nd Gen and older are not supported. If Developer Options is hidden, go to **Settings > My Fire TV > About** and click the device name 7 times to unlock it.
 
 ### Fire TV (Cube, Smart TV, etc.)
 
@@ -74,7 +74,9 @@ Or use a file manager app to open the APK from a USB drive.
 
 - JDK 17
 - Android SDK (cmdline-tools, platform-tools, build-tools 34.0.0, API 34-35)
-- A Fire TV Stick on the same network as your dev machine. Tested with Fire TV Stick (2nd Gen) - Fire OS 5.2.9.5, Fire TV Home 6450033.1.
+- Android TV emulator (included with Android SDK) or a Fire TV / Android TV device on the same network for physical testing
+
+> **Note:** This app has only been tested with the Android TV emulator. Physical device testing (Fire TV Stick 3rd Gen+, Android TV boxes, etc.) is untested but should work with any device running Android 6.0+ (API 23+).
 
 ### Install
 
@@ -115,7 +117,7 @@ yes | sdkmanager --licenses
 4. Note the IP from **Settings > My Fire TV > About > Network**
 5. Run `adb connect <ip>:5555` - accept the "Allow USB debugging?" dialog on the TV screen and check "Always allow from this computer"
 
-> **Fire TV Stick 2nd Gen:** Developer Options is hidden by default. Go to **Settings > My Fire TV > About** and click on **Fire TV Stick** 7 times to unlock it.
+> If Developer Options is hidden, go to **Settings > My Fire TV > About** and click the device name 7 times to unlock it.
 
 6. Edit `.env` with your device IP:
    ```

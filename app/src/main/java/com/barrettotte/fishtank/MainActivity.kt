@@ -17,7 +17,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 import com.barrettotte.fishtank.data.api.ApiClient
 import com.barrettotte.fishtank.data.repository.AuthRepository
@@ -98,9 +100,8 @@ fun FishtankNavHost() {
         }
 
         composable("grid") {
-            val displayName = remember { runBlocking { preferencesRepository.getDisplayName() } }
             val viewModel = remember {
-                GridViewModel(streamRepository, authRepository, displayName)
+                GridViewModel(streamRepository, authRepository, preferencesRepository)
             }
             GridScreen(
                 viewModel = viewModel,
@@ -108,9 +109,11 @@ fun FishtankNavHost() {
                     navController.navigate("player/$streamId")
                 },
                 onLogout = {
-                    runBlocking { authRepository.logout() }
-                    navController.navigate("login") {
-                        popUpTo("grid") { inclusive = true }
+                    CoroutineScope(Dispatchers.Main).launch {
+                        authRepository.logout()
+                        navController.navigate("login") {
+                            popUpTo("grid") { inclusive = true }
+                        }
                     }
                 },
             )

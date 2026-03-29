@@ -16,10 +16,13 @@ object ApiClient {
     fun create(preferencesRepository: PreferencesRepository): FishtankApi {
         val loggingInterceptor = HttpLoggingInterceptor().apply {
             level = if (BuildConfig.DEBUG) {
-                HttpLoggingInterceptor.Level.BODY
+                HttpLoggingInterceptor.Level.HEADERS
             } else {
                 HttpLoggingInterceptor.Level.NONE
             }
+            redactHeader("Authorization")
+            redactHeader("Cookie")
+            redactHeader("Set-Cookie")
         }
 
         val okHttpClient = OkHttpClient.Builder()

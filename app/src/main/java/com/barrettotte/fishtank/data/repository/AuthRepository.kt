@@ -18,7 +18,7 @@ class AuthRepository(
     /** Log in with email and password. Stores tokens and fetches display name on success. */
     suspend fun login(email: String, password: String): Result<Unit> {
         return try {
-            Logger.d(TAG, "Logging in with email: $email")
+            Logger.d(TAG, "Logging in...")
             val response = api.login(LoginRequest(email, password))
 
             if (!response.isSuccessful) {
@@ -143,7 +143,7 @@ class AuthRepository(
             Logger.e(TAG, "Failed to extract user ID from JWT")
             return ""
         }
-        Logger.d(TAG, "Extracted user ID: $userId")
+        Logger.d(TAG, "Extracted user ID from JWT")
         return profileRepository.getDisplayName(userId)
     }
 }

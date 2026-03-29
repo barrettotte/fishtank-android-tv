@@ -32,6 +32,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,6 +52,8 @@ import androidx.compose.ui.unit.sp
 
 import com.barrettotte.fishtank.R
 
+import kotlinx.coroutines.launch
+
 import com.barrettotte.fishtank.util.Constants
 import com.barrettotte.fishtank.ui.theme.Danger
 import com.barrettotte.fishtank.ui.theme.Dark
@@ -68,7 +71,7 @@ fun GridScreen(
     onLogout: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var showLogoutDialog by remember { mutableStateOf(false) }
+    var showOptionsDialog by remember { mutableStateOf(false) }
 
     // Handle token expiry by redirecting to login
     LaunchedEffect(uiState.error) {
@@ -85,7 +88,7 @@ fun GridScreen(
             .background(Dark)
             .onKeyEvent { event ->
                 if (event.type == KeyEventType.KeyDown && event.key == Key.Menu) {
-                    showLogoutDialog = true
+                    showOptionsDialog = true
                     true
                 } else {
                     false
@@ -100,7 +103,7 @@ fun GridScreen(
                 onlineCount = uiState.onlineCount,
                 totalCount = uiState.totalCount,
                 currentTime = uiState.currentTime,
-                onLogout = { showLogoutDialog = true },
+                onLogout = { showOptionsDialog = true },
             )
 
             // Content
@@ -139,6 +142,7 @@ fun GridScreen(
                 else -> {
                     CameraGrid(
                         cameras = uiState.cameras,
+                        restoreFocus = !showOptionsDialog,
                         onCameraSelected = { streamId ->
                             val tile = uiState.cameras.find { it.stream.id == streamId }
                             if (tile != null && !tile.isOnline) {
@@ -172,19 +176,20 @@ fun GridScreen(
             }
         }
 
-        // Logout confirmation dialog
-        if (showLogoutDialog) {
-            val logoutFocusRequester = remember { FocusRequester() }
+        // Options dialog (refresh token, logout, cancel)
+        if (showOptionsDialog) {
+            val optionsFocusRequester = remember { FocusRequester() }
+            val scope = rememberCoroutineScope()
 
             LaunchedEffect(Unit) {
-                logoutFocusRequester.requestFocus()
+                optionsFocusRequester.requestFocus()
             }
 
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Color.Black.copy(alpha = 0.6f))
-                    .clickable { showLogoutDialog = false },
+                    .clickable { showOptionsDialog = false },
                 contentAlignment = Alignment.Center,
             ) {
                 Column(
@@ -197,26 +202,37 @@ fun GridScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Text(
-                        text = "Log Out?",
+                        text = "Options",
                         color = White,
                         fontSize = 18.sp,
                         fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
                     )
                     Spacer(modifier = Modifier.height(20.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        DialogButton(
+                            text = "Refresh Token",
+                            baseColor = PanelBorder,
+                            focusRequester = optionsFocusRequester,
+                            onClick = {
+                                showOptionsDialog = false
+                                scope.launch { viewModel.refreshToken() }
+                            },
+                        )
                         DialogButton(
                             text = "Log Out",
-                            baseColor = Danger,
-                            focusRequester = logoutFocusRequester,
+                            baseColor = PanelBorder,
                             onClick = {
-                                showLogoutDialog = false
+                                showOptionsDialog = false
                                 onLogout()
                             },
                         )
                         DialogButton(
                             text = "Cancel",
-                            baseColor = Gray,
-                            onClick = { showLogoutDialog = false },
+                            baseColor = PanelBorder,
+                            onClick = { showOptionsDialog = false },
                         )
                     }
                 }
@@ -269,15 +285,15 @@ private fun GridHeader(
                 fontSize = 14.sp,
             )
             HeaderSeparator()
-            var logoutFocused by remember { mutableStateOf(false) }
+            var optionsFocused by remember { mutableStateOf(false) }
             Text(
-                text = "Log Out",
-                color = if (logoutFocused) Color.White else Danger,
+                text = "Options",
+                color = Color.White,
                 fontSize = 14.sp,
                 modifier = Modifier
-                    .onFocusChanged { logoutFocused = it.hasFocus || it.isFocused }
+                    .onFocusChanged { optionsFocused = it.hasFocus || it.isFocused }
                     .background(
-                        if (logoutFocused) Danger else Color.Transparent,
+                        if (optionsFocused) Primary else Color.Transparent,
                         RoundedCornerShape(4.dp),
                     )
                     .clickable { onLogout() }
@@ -301,13 +317,14 @@ private fun HeaderSeparator() {
 @Composable
 private fun CameraGrid(
     cameras: List<CameraTile>,
+    restoreFocus: Boolean = true,
     onCameraSelected: (String) -> Unit,
 ) {
     val firstFocusRequester = remember { FocusRequester() }
 
-    // Request focus on the first tile after composition
-    LaunchedEffect(cameras) {
-        if (cameras.isNotEmpty()) {
+    // Request focus on the first tile when cameras load or dialog closes
+    LaunchedEffect(cameras, restoreFocus) {
+        if (cameras.isNotEmpty() && restoreFocus) {
             firstFocusRequester.requestFocus()
         }
     }
@@ -352,6 +369,7 @@ private fun DialogButton(
             contentColor = White,
         ),
         modifier = Modifier
+            .fillMaxWidth()
             .onFocusChanged { isFocused = it.hasFocus || it.isFocused }
             .then(focusMod),
     ) {

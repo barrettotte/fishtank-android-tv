@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "com.barrettotte.fishtank"
-        minSdk = 22
+        minSdk = 23
         targetSdk = 34
         versionCode = property("app.versionCode").toString().toInt()
         versionName = property("app.versionName").toString()
@@ -34,7 +34,8 @@ android {
             signingConfig = signingConfigs.getByName("release")
             buildConfigField("String", "FT_EMAIL", "\"\"")
             buildConfigField("String", "FT_PASSWORD", "\"\"")
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -89,7 +90,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
 
-    // ExoPlayer (Media3) - pinned to 1.2.1 for API 22 (Fire TV Stick 2nd Gen) support
+    // ExoPlayer (Media3)
     implementation("androidx.media3:media3-exoplayer:1.2.1")
     implementation("androidx.media3:media3-exoplayer-hls:1.2.1")
     implementation("androidx.media3:media3-ui:1.2.1")
@@ -99,9 +100,10 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+    implementation("com.google.code.gson:gson:2.11.0") // override transitive 2.8.5 (CVE-2022-25647)
 
     // DataStore
-    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation("androidx.datastore:datastore-preferences:1.1.2")
 
     // Coil for image loading
     implementation("io.coil-kt:coil-compose:2.5.0")
