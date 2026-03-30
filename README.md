@@ -4,6 +4,49 @@ A basic app for watching Fishtank.live on Android TV (unofficial).
 
 Port of the [Roku app](https://github.com/barrettotte/fishtank-roku-app) to Android TV / Fire TV.
 
+## Features
+
+- Login with Fishtank.live email/password
+- Auto-login with cached tokens on subsequent launches
+- Camera grid with live thumbnails and online/offline indicators
+- Full-screen HLS video playback
+- Switch cameras without leaving the player (press Up)
+- Stream quality selection: High / Medium / Low (press Down)
+- Edge server override for outages (press Down)
+- Quality and server preferences persist across sessions
+- Automatic token refresh via background re-login on stream errors
+
+<img src="docs/login.png" width="400" alt="Login Screen" />
+<img src="docs/cam-grid.jpg" width="400" alt="Camera Grid" />
+<img src="docs/cam-switch.png" width="400" alt="Camera Switcher" />
+<img src="docs/settings.png" width="400" alt="Stream Settings" />
+
+<img src="docs/home.png" width="400" alt="Home Screen" />
+
+## Controls
+
+### Camera Grid
+| Button | Action |
+|--------|--------|
+| D-pad | Navigate cameras |
+| OK | Open selected camera stream |
+| Menu | Log out |
+
+### Video Player
+| Button | Action |
+|--------|--------|
+| OK | Show camera name, quality, and server info |
+| Up | Open camera switcher |
+| Down | Open stream settings (quality and server) |
+| Back | Return to camera grid |
+
+### Camera Switcher (in player)
+| Button | Action |
+|--------|--------|
+| Up / Down | Navigate camera list |
+| OK | Switch to selected camera |
+| Back | Close switcher |
+
 ## Install (Sideload)
 
 Download the latest APK from [Releases](https://github.com/barrettotte/fishtank-android-tv/releases).
@@ -49,24 +92,20 @@ adb install fishtank-android-tv-v0.1.0.apk
 
 Or use a file manager app to open the APK from a USB drive.
 
-## Controls
+### Credential Storage
 
-### Camera Grid
+All sensitive data stored on the device is encrypted using [Android Keystore](https://developer.android.com/privacy-and-security/keystore) with AES-256-GCM. The encryption key is hardware-backed and never leaves the device.
 
-| Button | Action |
-|--------|--------|
-| D-pad | Navigate cameras |
-| OK | Open camera stream |
-| Menu | Log out |
+| Data | Encrypted | Purpose |
+|------|-----------|---------|
+| Email | Yes | Background re-login for token refresh |
+| Password | Yes | Background re-login for token refresh |
+| Access Token | Yes | REST API authentication |
+| Live Stream Token | Yes | HLS stream URL JWT parameter |
+| Display Name | No | Shown in header (non-sensitive) |
+| Quality / Server | No | User preferences (non-sensitive) |
 
-### Video Player
-
-| Button | Action |
-|--------|--------|
-| OK | Show camera name, quality, and server info |
-| Up | Open camera switcher |
-| Down | Open stream settings (quality and server) |
-| Back | Close overlay or return to grid |
+Credentials are stored to allow the app to re-login automatically in the background to refresh the stream token (JWT), which expires every 30 minutes.
 
 ## Developer Setup
 
